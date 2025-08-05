@@ -56,10 +56,21 @@ export interface Segment {
     tm: TM
 }
 
+interface Stats {
+    total: number,
+    completed: number,
+    processing: number,
+    error: number,
+    tmMatches: number,
+    statusBreakdown: object
+};
+
 interface Metadata {
-    url: string,
+    extractionDate: string,
     totalSegments: number,
-    extractedAt: string
+    processingTime: string,
+    processingStats: Stats,
+    version: "1.0"
 }
 
 interface JSONContent {
