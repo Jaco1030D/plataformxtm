@@ -6,6 +6,14 @@ export const useReaderJSON = () => {
     const [jsonData, setJsonData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    // const abortControllerRef = useRef<AbortController | null>(null);
+
+    // if (abortControllerRef.current) {
+    //     abortControllerRef.current.abort();
+    //   }
+      
+    //   abortControllerRef.current = new AbortController();
+    //   const signal = abortControllerRef.current.signal;
 
     const reader = new FileReader();
 
@@ -21,12 +29,32 @@ export const useReaderJSON = () => {
                 
                 const parsedData = JSON.parse(content);
 
+                // Coletar todos os tipos de erro presentes nos segmentos
+                let TypesErrors: string[] = [];
+                try {
+                    if (Array.isArray(parsedData)) {
+                        const typesSet = new Set<string>();
+                        for (const seg of parsedData) {
+                            const errors = (seg && Array.isArray(seg.errors)) ? seg.errors : [];
+                            for (const err of errors) {
+                                if (err && typeof err.type === 'string') {
+                                    typesSet.add(err.type);
+                                }
+                            }
+                        }
+                        TypesErrors = Array.from(typesSet);
+                    }
+                } catch (_) {
+                    // silencioso: se der erro, mantemos TypesErrors vazio
+                }
+
                 const fileForAddSegments = state.files.filter(file => file.size === e.total)[0]
 
                 actions.addSegments({
                     content: parsedData,
                     file: fileForAddSegments,
-                    size: file.size
+                    size: file.size,
+                    TypesErrors
                 })
                 
                 setJsonData(parsedData);
@@ -69,6 +97,14 @@ export const useReaderJSON = () => {
         
         setError(null);
     };
+
+    // useEffect(() => {
+    //     return () => {
+    //       if (abortControllerRef.current) {
+    //         abortControllerRef.current.abort();
+    //       }
+    //     };
+    // }, []);
 
     return {
         // Dados

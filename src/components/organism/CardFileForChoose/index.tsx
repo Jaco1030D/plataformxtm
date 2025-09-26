@@ -1,4 +1,4 @@
-import { FileText, Calendar, Layers, HardDrive, ArrowRight } from "lucide-react";
+import { FileText, Calendar, Layers, HardDrive, ArrowRight, Loader } from "lucide-react";
 import { useFunctions } from "./useFunctions";
 import type { FileWithSegment } from "../../../context/FileUploads/types/context";
 
@@ -7,7 +7,8 @@ interface CardFileForChooseProps {
 }
 
 const CardFileForChoose = ({file}: CardFileForChooseProps) => {
-    const  {chooseEditFile, formatDate, truncateFileName, calculateLockedSegments} = useFunctions()
+    const  {chooseEditFile, truncateFileName, getSegmentsStats, loading} = useFunctions()
+    const stats = getSegmentsStats(file)
     return (
         <div
             className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 w-full max-w-sm border border-gray-100 hover:border-gray-200 group cursor-pointer transform hover:-translate-y-1"
@@ -46,10 +47,10 @@ const CardFileForChoose = ({file}: CardFileForChooseProps) => {
                 {/* Segmentos */}
                 <div className="flex items-center text-sm text-gray-600">
                     <Layers className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="font-medium">Segmentos editaveis:</span>
+                    <span className="font-medium">Segmentos editáveis:</span>
                     <span className="ml-auto">
                         <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
-                            {calculateLockedSegments(file).editable}
+                            {stats.editable}
                         </span>
                     </span>
                 </div>
@@ -59,7 +60,7 @@ const CardFileForChoose = ({file}: CardFileForChooseProps) => {
                     <span className="font-medium">Segmentos bloqueados:</span>
                     <span className="ml-auto">
                         <span className="inline-flex items-center justify-center w-6 h-6 bg-red-100 text-red-600 text-xs font-bold rounded-full">
-                            {calculateLockedSegments(file).lockeds}
+                            {stats.lockeds}
                         </span>
                     </span>
                 </div>
@@ -69,7 +70,7 @@ const CardFileForChoose = ({file}: CardFileForChooseProps) => {
                     <span className="font-medium">Segmentos Totais:</span>
                     <span className="ml-auto">
                         <span className="inline-flex items-center justify-center w-6 h-6 bg-green-100 text-grenn-600 text-xs font-bold rounded-full">
-                            {file.content.metadata.totalSegments}
+                            {stats.total}
                         </span>
                     </span>
                 </div>
@@ -79,15 +80,14 @@ const CardFileForChoose = ({file}: CardFileForChooseProps) => {
                     <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                     <span className="font-medium">Extraído:</span>
                 </div>
-                <div className="text-xs text-gray-500 font-mono ml-6">
-                    {formatDate(file.content.metadata.extractionDate)}
-                </div>
+                <div className="text-xs text-gray-500 font-mono ml-6"/>
             </div>
 
             <div className="mt-6 pt-4 border-t border-gray-100">
                 <button onClick={() => chooseEditFile(file)} className="w-full flex bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 items-center justify-center space-x-2">
                     <span>Editar Segmentos</span>
-                    <ArrowRight size={14}/>
+                    
+                    {loading ? <Loader size={14}/> : <ArrowRight size={14}/>}
                 </button>
             </div>
         </div>

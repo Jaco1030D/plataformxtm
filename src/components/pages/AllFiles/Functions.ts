@@ -38,12 +38,44 @@ export const useFunctions = () => {
         navigate(editSegmentsRoutes)
     }
 
+    const formatBytes = (bytes: number) => {
+        if (bytes === 0) return '0 B'
+        const k = 1024
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        const value = parseFloat((bytes / Math.pow(k, i)).toFixed(2))
+        return `${value} ${sizes[i]}`
+    }
+
+    const getFileStats = (file: FileWithSegment) => {
+        const segments = Array.isArray(file.content) ? file.content : []
+        const total = segments.length
+        const byStatus = segments.reduce<Record<string, number>>((acc, s) => {
+            const key = s.status || 'unknown'
+            acc[key] = (acc[key] || 0) + 1
+            return acc
+        }, {})
+        return { total, byStatus }
+    }
+
+    const getGlobalStats = () => {
+        const files = state.filesWithSegments
+        const totals = files.map(f => getFileStats(f).total)
+        const totalSegments = totals.reduce((a, b) => a + b, 0)
+        const filesCount = files.length
+        const averagePerFile = filesCount ? Math.round(totalSegments / filesCount) : 0
+        return { filesCount, totalSegments, averagePerFile }
+    }
+
     return {
         state,
         chooseEditFile,
         filesForChoose: state.files,
         formatDate,
         truncateFileName,
-        backPage: () => navigate('/')
+        backPage: () => navigate('/'),
+        formatBytes,
+        getFileStats,
+        getGlobalStats
     }
 }

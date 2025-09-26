@@ -1,5 +1,5 @@
 import * as actionTypes from './actions-types';
-import type { BuildActionsParams, FileWithSegment } from './types/context';
+import type { BuildActionsParams, FileWithSegment, UpdateProps } from './types/context';
 
 export const buildActions = (dispatch: BuildActionsParams) => {
 
@@ -9,6 +9,7 @@ export const buildActions = (dispatch: BuildActionsParams) => {
     removeAllFiles: () => dispatch({ type: actionTypes.removeAllFiles}),
     addEditFile: (payload: FileWithSegment) => dispatch({type: actionTypes.addFileToEdit, payload}),
     addSegments: (payload: FileWithSegment) => dispatch({type: actionTypes.addSegments, payload}),
-    clearEditFile: () => dispatch({type: actionTypes.clearFileToEdit})
+    clearEditFile: () => dispatch({type: actionTypes.clearFileToEdit}),
+    updateSegments: (payload: UpdateProps) => dispatch({type: actionTypes.updateSegments, payload})
   }
 }

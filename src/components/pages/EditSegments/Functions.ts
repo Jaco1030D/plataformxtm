@@ -1,10 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils";
 import { allFilesRoutes } from "../../../const/routes";
+import type { JSONContent } from "../../../context/FileUploads/types/context";
 
 
 export const useFunctions = () => {
     const [state] = useFilesUploadsContext();
+    // const [chunks, setChunks] = useState([])
+    // const [loadingCreateChunk, setLoadingCreateChunk] = useState(false)
     const navigate = useNavigate()
     
     const getStatusColor = (status: string) => {
@@ -35,10 +38,48 @@ export const useFunctions = () => {
         }
     };
 
+    // useEffect(() => {
+    //     const chunkSize = 100
+
+    //     if (state.editValue?.content?.segments && state.editValue?.content?.segments.length > 0) {
+            
+    //         const chunks = Array.from(
+    //             { length: Math.ceil(state.editValue?.content?.segments.length / chunkSize) },
+    //             (_, index) => state.editValue?.content?.segments.slice(index * chunkSize, (index + 1) * chunkSize)
+    //         );
+
+    //         console.log(
+    //             chunks
+    //         );
+            
+    //     }
+
+
+    // },[])
+
+    const createChunks = (chunkSize: number, segmentsContent: JSONContent) => {
+
+        let chunks = null
+
+        const segments = Array.isArray(segmentsContent) ? segmentsContent : []
+
+        if (segments && segments.length > 0) {
+            chunks = Array.from(
+                { length: Math.ceil(segments.length / chunkSize) },
+                (_, index) => segments.slice(index * chunkSize, (index + 1) * chunkSize)
+            );
+        }
+        
+        return chunks
+    }
+
     return {
         getMatchColor,
         getStatusColor,
         state,
-        back: () => navigate(allFilesRoutes)
+        back: () => navigate(allFilesRoutes),
+        segments: (Array.isArray(state.editValue?.content) ? state.editValue?.content : []),
+        typeErrors: state.editValue?.TypesErrors || [],
+        createChunks,
     }
 }

@@ -3,7 +3,7 @@ import { Lock, Unlock, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import type { Segment } from '../../../context/FileUploads/types/context';
 import { useFunctions } from "./useFunctions";
 import type { filterProps } from "../../pages";
-
+import { useEffect, useState } from "react";
 interface SegmentEditorProps {
     segment: Segment,
     filter: filterProps
@@ -11,7 +11,14 @@ interface SegmentEditorProps {
 
 const SegmentEditor = ({segment, filter}: SegmentEditorProps) => {
 
-    const {getMatchColor, getStatusColor} = useFunctions()
+    const {getMatchColor, getStatusColor, removeTxtTags, createConfig} = useFunctions()
+    const [valueTarget, setValueTarget] = useState({
+        config: {},
+        text: ""
+    })
+
+    console.log(valueTarget);
+    
     
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -28,8 +35,23 @@ const SegmentEditor = ({segment, filter}: SegmentEditorProps) => {
         }
     };
 
+    
+
+    useEffect(() => {
+
+        setValueTarget({
+            config: createConfig(segment.target),
+            text: removeTxtTags(segment.target)
+        })
+
+        
+    
+    },[segment.target])
+
     if (segment.isLocked && !filter.viewLocked) {
+
         return null
+    
     }
     
     return (
@@ -81,7 +103,7 @@ const SegmentEditor = ({segment, filter}: SegmentEditorProps) => {
                         Texto Original (Source)
                     </label>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <p className="text-gray-800 leading-relaxed">{segment.source}</p>
+                        <p className="text-gray-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: removeTxtTags(segment.source) }} />
                     </div>
                 </div>
 
@@ -90,7 +112,7 @@ const SegmentEditor = ({segment, filter}: SegmentEditorProps) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Tradução (Target)
                     </label>
-                    {segment.isLocked ? (
+                    {!segment.isLocked ? (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                             <p className="text-gray-800 leading-relaxed">
                                 {segment.target || (
@@ -99,12 +121,8 @@ const SegmentEditor = ({segment, filter}: SegmentEditorProps) => {
                             </p>
                         </div>
                     ) : (
-                        <textarea
-                            className="w-full bg-white border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
-                            rows={3}
-                            defaultValue={segment.target}
-                            placeholder="Digite a tradução aqui..."
-                        />
+                        // <InputDiv id={segment.id} text={valueTarget.text} />
+                        <p>So vendo aqui</p>
                     )}
                 </div>
             </div>

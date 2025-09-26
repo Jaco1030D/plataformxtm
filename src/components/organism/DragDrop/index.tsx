@@ -36,6 +36,7 @@ const DragDrop = ({onSelectedFiles}: DragDropProps) => {
                     id="file-upload" 
                     onChange={handleInputChange} 
                     multiple 
+                    accept=".json"
                 />
                 
                 <div className="flex flex-col items-center space-y-4">

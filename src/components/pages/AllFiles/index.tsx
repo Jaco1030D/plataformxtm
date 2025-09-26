@@ -3,8 +3,11 @@ import { useFunctions } from "./Functions";
 import CardFileForChoose from "../../organism/CardFileForChoose";
 
 const AllFiles = () => {
-    const {state, backPage} = useFunctions() // Substitua por useFunctions()
+    const {state, backPage, getGlobalStats} = useFunctions() // Substitua por useFunctions()
+    
 
+    console.log(state.filesWithSegments);
+    
     if (state.filesWithSegments.length === 0) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -23,14 +26,14 @@ const AllFiles = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 relative">
-            {/* Botão Voltar - Position Absolute */}
+
             <button onClick={backPage} className="absolute cursor-pointer top-6 left-6 z-10 flex bg-white text-gray-600 border-2 border-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 items-center space-x-2 shadow-sm">
                 <ArrowLeft size={16}/>
                 <span>Voltar</span>
             </button>
 
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+
                 <div className="text-center mb-12">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Meus Arquivos</h1>
                     <p className="text-gray-600">
@@ -48,24 +51,27 @@ const AllFiles = () => {
                 {/* Stats Footer */}
                 <div className="mt-12 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-6">
+                        {(() => { const s = getGlobalStats(); return (
+                        <>
                         <div>
                             <div className="text-2xl font-bold text-blue-600 mb-1">
-                                {state.filesWithSegments.length}
+                                {s.filesCount}
                             </div>
                             <div className="text-sm text-gray-600">Arquivos Processados</div>
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-green-600 mb-1">
-                                {state.filesWithSegments.reduce((acc, file) => acc + file.content.metadata.totalSegments, 0)}
+                                {s.totalSegments}
                             </div>
                             <div className="text-sm text-gray-600">Total de Segmentos</div>
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-purple-600 mb-1">
-                                {state.filesWithSegments.length > 0 ? Math.round(state.filesWithSegments.reduce((acc, file) => acc + file.content.metadata.totalSegments, 0) / state.filesWithSegments.length) : 0}
+                                {s.averagePerFile}
                             </div>
                             <div className="text-sm text-gray-600">Média por Arquivo</div>
                         </div>
+                        </> ); })()}
                     </div>
                 </div>
             </div>

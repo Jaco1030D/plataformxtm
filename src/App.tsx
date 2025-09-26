@@ -15,6 +15,7 @@ const App = () => {
                 <Route path={allFilesRoutes} element={<AllFiles />} />
 
                 <Route path={editSegmentsRoutes} element={<EditSegments />} />
+                
             
             </Routes>
         

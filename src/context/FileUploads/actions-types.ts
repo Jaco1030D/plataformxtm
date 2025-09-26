@@ -6,3 +6,4 @@ export const removeAllFiles = `${prefix}/REMOVEALLFILES`
 export const addFileToEdit = `${prefix}/ADDFILETOEDIT`
 export const clearFileToEdit = `${prefix}/CLEARFILETOEDIT`
 export const addSegments = `${prefix}/ADDSEGMENTS`
+export const updateSegments = `${prefix}/UPDATESEGMENTS`

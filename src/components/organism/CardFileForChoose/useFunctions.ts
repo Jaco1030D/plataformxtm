@@ -2,10 +2,11 @@ import { useNavigate } from "react-router-dom"
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils"
 import type { FileWithSegment } from "../../../context/FileUploads/types/context"
 import { editSegmentsRoutes } from "../../../const/routes"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
 export const useFunctions = () => {
     const [state, actions] = useFilesUploadsContext()
+    const [loading, setLoading] = useState<boolean>(false)
 
     const navigate = useNavigate()
 
@@ -20,13 +21,13 @@ export const useFunctions = () => {
         });
     }
 
-    const calculateLockedSegments = useCallback((file: FileWithSegment) => {
-
-        const lockeds = file.content.segments.filter(segment => segment.isLocked).length
-
-        const editable = file.content.metadata.totalSegments - lockeds
-
-        return {lockeds, editable}
+    const getSegmentsStats = useCallback((file: FileWithSegment) => {
+        const segments = Array.isArray(file.content) ? file.content : []
+        const total = segments.length
+        // No novo formato não há isLocked; consideramos bloqueados = 0
+        const lockeds = 0
+        const editable = total - lockeds
+        return { total, lockeds, editable }
     },[])
 
     const truncateFileName = (name: string, maxLength = 20) => {
@@ -43,6 +44,8 @@ export const useFunctions = () => {
 
     const chooseEditFile = (file: FileWithSegment) => {
 
+        setLoading(true)
+
         actions.addEditFile(file)
 
         navigate(editSegmentsRoutes)
@@ -55,6 +58,7 @@ export const useFunctions = () => {
         formatDate,
         truncateFileName,
         backPage: () => navigate('/'),
-        calculateLockedSegments
+        getSegmentsStats,
+        loading
     }
 }

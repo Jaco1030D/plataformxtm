@@ -1,0 +1,84 @@
+[
+  {
+    "id": 49,
+    "source": "USB 2.0 sockets (type A), 3x",
+    "translation": "Entradas USB 2.0 (tipo A), 3x",
+    "status": "M",
+    "languages": [
+      "english",
+      "portuguese"
+    ],
+    "errors": [
+      {
+        "type": "decimalFormat1",
+        "message": "❌"
+      }
+    ],
+    "validations": [
+      {
+        "type": "qa",
+        "message": "✔ % spacing OK."
+      },
+      {
+        "type": "qa",
+        "message": "✔ Math symbol spacing OK."
+      },
+      {
+        "type": "qa",
+        "message": "✔ Unit spacing OK."
+      },
+      {
+        "type": "qa",
+        "message": "✔ Todos os números da tradução estão presentes na source."
+      },
+      {
+        "type": "number",
+        "message": "✔ Números corretos"
+      },
+      {
+        "type": "symbol",
+        "message": "✔ Símbolos corretos"
+      },
+      {
+        "type": "tag",
+        "message": "✔"
+      },
+      {
+        "type": "tagReproof",
+        "message": "✔ Tag Order Doublechecked"
+      },
+      {
+        "type": "tagSpacing",
+        "message": "✔"
+      },
+      {
+        "type": "thousandSeparator1",
+        "message": "✔"
+      },
+      {
+        "type": "decimalFormat2",
+        "message": "✔  :  3x"
+      },
+      {
+        "type": "dimensionsRepeat",
+        "message": "✔"
+      },
+      {
+        "type": "imperialUnits",
+        "message": "✔"
+      },
+      {
+        "type": "celsiusSpaces",
+        "message": "✔"
+      },
+      {
+        "type": "ranges",
+        "message": "✔"
+      },
+      {
+        "type": "fractions",
+        "message": "✔"
+      }
+    ]
+  }
+]

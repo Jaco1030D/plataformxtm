@@ -1,5 +1,5 @@
 import type { Dispatch } from "react"
-import type { addFileToEdit, addSegments, clearFileToEdit, removeAllFiles, removeFile, uploadFile } from "../actions-types"
+import type { addFileToEdit, addSegments, clearFileToEdit, removeAllFiles, removeFile, updateSegments, uploadFile } from "../actions-types"
   
 // Tipo da ação
 type UploadFileAction = {
@@ -27,6 +27,14 @@ type AddSegmentsToFile = {
     type: typeof addSegments,
     payload: FileWithSegment
 }
+export type UpdateProps = {
+    targetText: string,
+    id: number
+}
+type UpdateSegmentsAction = { 
+    type: typeof updateSegments,
+    payload: UpdateProps
+ }
 
 // Tipo de todas as ações
 export type FileActions =
@@ -36,14 +44,20 @@ export type FileActions =
     | AddFileToEditAction
     | AddSegmentsToFile
     | ClearFilesToEditAction
+    | UpdateSegmentsAction
 
 export type BuildActionsParams = Dispatch<FileActions>;
 
-interface TM {
+interface Match {
     metadata: string,
     score: string,
     sourceTm: string,
     targetTm: string
+}
+
+interface TM {
+    matches: Match[],
+    
 }
 
 export interface Segment {
@@ -53,7 +67,8 @@ export interface Segment {
     target: string,
     status: string,
     statusMatch: string,
-    tm: TM
+    tm: TM,
+    changed?: boolean
 }
 
 interface Stats {
@@ -68,20 +83,42 @@ interface Stats {
 interface Metadata {
     extractionDate: string,
     totalSegments: number,
-    processingTime: string,
+    processingTime: number,
     processingStats: Stats,
     version: "1.0"
 }
 
-interface JSONContent {
+// Novo formato (example.json): lista de segmentos com campos simples
+export interface ValidationMessage {
+    type: string,
+    message: string
+}
+
+export interface MigratedSegment {
+    id: number,
+    source: string,
+    translation: string,
+    status: string,
+    languages?: string[],
+    errors: ValidationMessage[],
+    validations: ValidationMessage[],
+    changed?: boolean
+}
+
+// Formato antigo (old.json suportado anteriormente): objeto com metadata e segments detalhados
+export interface LegacyJSONContent {
     metadata: Metadata,
     segments: Segment[]
 }
 
+// JSONContent agora aceita tanto o novo formato (array) quanto o antigo (objeto)
+export type JSONContent = MigratedSegment[];
+
 export interface FileWithSegment{
     content: JSONContent,
     file: File,
-    size: number
+    size: number,
+    TypesErrors?: string[]
 }
 
 
@@ -98,6 +135,7 @@ export type BuildActionsReturnType = {
     addEditFile: (payload: FileWithSegment) => void;
     addSegments: (payload: FileWithSegment) => void;
     clearEditFile: () => void;
+    updateSegments: (payload: UpdateProps) => void;
   };
 
 export type FileContent = {

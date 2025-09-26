@@ -1,0 +1,40 @@
+{
+    "metadata": {
+      "extractionDate": "2025-09-04T13:41:09.039Z",
+      "totalSegments": 744,
+      "processingTime": 199679,
+      "processingStats": {
+        "total": 744,
+        "completed": 724,
+        "processing": 0,
+        "error": 0,
+        "tmMatches": 1148,
+        "statusBreakdown": {
+          "completed": 724,
+          "unknown": 20
+        }
+      },
+      "version": "1.0"
+    },
+    "segments": [
+      {
+        "id": "1",
+        "source": "<txt class=\"text-node\">D32IB006_L-Rix 2100/3100</txt>",
+        "target": "<txt class=\"text-node\">D32IB006_L-Rix 2100/3100</txt>",
+        "status": "completed",
+        "statusMatch": "MT",
+        "isLocked": true,
+        "tm": {
+          "matches": [
+            {
+              "score": "MT",
+              "sourceTm": "<txt class=\"text-node\">D32IB006_L-Rix 2100/3100</txt>",
+              "targetTm": "<txt class=\"text-node\">D32IB006_L-Rix 2100/3100</txt>",
+              "metadata": "DeepL Translator"
+            }
+          ]
+        }
+      }
+    ]
+
+}
