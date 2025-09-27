@@ -8,16 +8,29 @@ interface CurrentViewProps {
     index: number
 }
 
-export const usePagination = (chunkSize: number, segments: MigratedSegment[], filters: ErrorFilterKey[]) => {
+export const usePagination = (chunkSize: number, segments: MigratedSegment[], filters: ErrorFilterKey[], selectedGroupId?: string | null) => {
     const [currentView, setCurrentView] = useState<CurrentViewProps|null>(null)
     const [isPending, startTransition] = useTransition()
 
     const filtered = useMemo(() => {
-        if (!filters || filters.length === 0) return segments;
-        return segments.filter(segment =>
-            Array.isArray(segment.errors) && segment.errors.some(err => typeof err?.type === 'string' && filters.includes(err.type))
-        )
-    }, [filters])
+        let filteredSegments = segments;
+
+        // Filtro por grupo (prioridade)
+        if (selectedGroupId) {
+            filteredSegments = filteredSegments.filter(segment =>
+                Array.isArray(segment.groups) && segment.groups.includes(selectedGroupId)
+            );
+        }
+
+        // Filtro por erros
+        if (filters && filters.length > 0) {
+            filteredSegments = filteredSegments.filter(segment =>
+                Array.isArray(segment.errors) && segment.errors.some(err => typeof err?.type === 'string' && filters.includes(err.type))
+            );
+        }
+
+        return filteredSegments;
+    }, [selectedGroupId, filters])
 
     const filteredIds = useMemo(() => {
         return filtered.map(segment => segment.id).sort((a, b) => a - b)
@@ -127,6 +140,7 @@ export const usePagination = (chunkSize: number, segments: MigratedSegment[], fi
         nextLoadCount,
         prevLoadCount,
         filteredIds,
-        binarySearch
+        binarySearch,
+        filteredSegments: filtered // ✅ Expor os segmentos filtrados
     }
 }

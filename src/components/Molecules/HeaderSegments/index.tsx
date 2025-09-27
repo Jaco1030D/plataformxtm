@@ -38,7 +38,7 @@ const HeaderSegments = ({segment}: {segment: MigratedSegment}) => {
 
             {/* Lock Status */}
             {segment.changed && (
-                <div className="flex items-center justify-end mb-3">
+                <div className="flex items-center justify-end mb-3 mr-[20px]">
                     <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                         <Edit3 className="w-4 h-4" />
                         <span>Alterado</span>

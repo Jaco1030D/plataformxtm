@@ -16,6 +16,7 @@ interface InputDivProps {
 const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
     const {focusDiv, usedTag, addHTMLElements, convertImgTagsToBraces, countBracedTags} = useTags()
     const [state, actions] = useFilesUploadsContext()
+    const {renderTextWithTags} = useTags()
     const [targetText, setTargetText] = useState(targetValue?.tratedText)
     const [tagsData, setTagsData] = useState<groupPlussType[] | []>(targetValue?.tagsUsed || [])
 
@@ -43,7 +44,7 @@ const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
 
     const handleKeyDownWithSave = (e: React.KeyboardEvent<HTMLDivElement>) => {
         // Verificar se Alt + Enter foi pressionado
-        if (e.altKey && e.key === 'Enter' && inputRef.current) {
+        if ((e.altKey || e.ctrlKey) && e.key === 'Enter' && inputRef.current) {
             
             e.preventDefault();
             
@@ -121,6 +122,9 @@ const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
             
         }
 
+        console.log(e.ctrlKey);
+        
+
         if (e.key === "Backspace" && inputRef.current && inputRef.current.childNodes.length > 0) {
             
             const arrayNodes = Array.from(inputRef.current.childNodes)
@@ -181,6 +185,7 @@ const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
 
             actions.updateSegments({id: segment.id, targetText: segmentActual.text})
 
+            setTargetText(renderTextWithTags(segmentActual.text).textTrated)
             // Atualiza contagem de tags usadas a partir do texto salvo (com chaves)
             const counts = countBracedTags(segmentActual.text)
             if (tagsData && tagsData.length > 0) {

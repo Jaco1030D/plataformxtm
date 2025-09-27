@@ -4,14 +4,14 @@ import type { MigratedSegment } from '../../../context/FileUploads/types/context
 import type { ErrorFilterKey } from '../../../hooks/usePagination';
 
 interface ErrorFilterProps {
-    segments: MigratedSegment[];
+    filteredSegments: MigratedSegment[]; // ✅ Segmentos já filtrados por grupo
     errorTypes: string[];
     onApply: (filters: ErrorFilterKey[]) => void;
 }
 
 // Removido tipo antigo baseado em propriedades que não existem mais
 
-const ErrorFilter: React.FC<ErrorFilterProps> = ({ segments, errorTypes, onApply }) => {
+const ErrorFilter: React.FC<ErrorFilterProps> = ({ filteredSegments, errorTypes, onApply }) => {
     const [selectedFilters, setSelectedFilters] = useState<ErrorFilterKey[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null)
@@ -24,10 +24,10 @@ const ErrorFilter: React.FC<ErrorFilterProps> = ({ segments, errorTypes, onApply
         return <CheckCircle className="w-4 h-4" />
     }
 
-    // Calcular estatísticas de erros
+    // Calcular estatísticas de erros baseado nos segmentos filtrados por grupo
     const getErrorStats = () => {
         const stats = errorTypes.map(key => {
-            const count = segments.filter(segment => 
+            const count = filteredSegments.filter(segment => 
                 Array.isArray(segment.errors) && segment.errors.some(err => err.type === key)
             ).length;
             return { key, label: key, icon: iconFor(key), color: 'text-gray-700', count } as any;
@@ -50,9 +50,9 @@ const ErrorFilter: React.FC<ErrorFilterProps> = ({ segments, errorTypes, onApply
     };
 
     const getTotalFilteredCount = () => {
-        if (selectedFilters.length === 0) return segments.length;
+        if (selectedFilters.length === 0) return filteredSegments.length;
         
-        const filtered = segments.filter(segment => {
+        const filtered = filteredSegments.filter(segment => {
             return Array.isArray(segment.errors) && segment.errors.some(err => selectedFilters.includes(err.type));
         });
         
@@ -106,7 +106,7 @@ const ErrorFilter: React.FC<ErrorFilterProps> = ({ segments, errorTypes, onApply
                         {/* Estatísticas */}
                         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                             <div className="text-sm text-gray-600 mb-2">
-                                <strong>{getTotalFilteredCount()}</strong> de <strong>{segments.length}</strong> segmentos
+                                <strong>{getTotalFilteredCount()}</strong> de <strong>{filteredSegments.length}</strong> segmentos
                             </div>
                             {selectedFilters.length > 0 && (
                                 <button

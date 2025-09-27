@@ -10,6 +10,7 @@ export const buildActions = (dispatch: BuildActionsParams) => {
     addEditFile: (payload: FileWithSegment) => dispatch({type: actionTypes.addFileToEdit, payload}),
     addSegments: (payload: FileWithSegment) => dispatch({type: actionTypes.addSegments, payload}),
     clearEditFile: () => dispatch({type: actionTypes.clearFileToEdit}),
-    updateSegments: (payload: UpdateProps) => dispatch({type: actionTypes.updateSegments, payload})
+    updateSegments: (payload: UpdateProps) => dispatch({type: actionTypes.updateSegments, payload}),
+    addIdGroup: (payload: { segmentIds: number[], groupId: string }) => dispatch({type: actionTypes.addIdGroup, payload})
   }
 }

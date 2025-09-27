@@ -7,3 +7,4 @@ export const addFileToEdit = `${prefix}/ADDFILETOEDIT`
 export const clearFileToEdit = `${prefix}/CLEARFILETOEDIT`
 export const addSegments = `${prefix}/ADDSEGMENTS`
 export const updateSegments = `${prefix}/UPDATESEGMENTS`
+export const addIdGroup = `${prefix}/ADDIDGROUP`

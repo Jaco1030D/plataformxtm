@@ -1,22 +1,80 @@
 import { ArrowLeft, Download, Edit3 } from "lucide-react";
 import { useFunctions } from "./Functions";
 import SegmentContainer from "../../organism/SegmentContainer";
+import GroupActionsPanel from "../../organism/GroupActionsPanel";
+import CreateGroupModal from "../../organism/CreateGroupModal";
+import AddToGroupModal from "../../organism/AddToGroupModal";
 import { useMemo, useRef, useState } from "react";
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils";
 import { usePagination } from "../../../hooks/usePagination";
 import type { ErrorFilterKey } from "../../../hooks/usePagination";
 import LoadingOverlay from "../../organism/LoadingOverlay";
 import ErrorFilter from "../../organism/ErrorFilter";
+import GroupFilter from "../../organism/GroupFilter";
+import { useGroups } from "../../../context/Groups";
 
 
 const EditSegments = () => {
     const { back, segments, typeErrors } = useFunctions()
     const [filters, setFilters] = useState<ErrorFilterKey[]>([])
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
     const perPage = 50
-    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch } = usePagination(perPage, segments, filters)
-    const [state] = useFilesUploadsContext()
+    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(perPage, segments, filters, selectedGroupId)
+    const [state, actions] = useFilesUploadsContext()
+    const {state: groupsState, actions: groupsActions} = useGroups()
     const numforGoToRef = useRef<HTMLInputElement>(null)
     
+    const [selectedSegments, setSelectedSegments] = useState<Set<number>>(new Set())
+    
+    // Estado para modais
+    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
+    const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
+    
+    // Funções para gerenciar seleção
+    const toggleSegmentSelection = (segmentId: number) => {
+        setSelectedSegments(prev => {
+            const newSet = new Set(prev)
+            if (newSet.has(segmentId)) {
+                newSet.delete(segmentId)
+            } else {
+                newSet.add(segmentId)
+            }
+            return newSet
+        })
+    }
+
+    // Funções para ações dos grupos
+    const handleCreateGroup = () => {
+        setShowCreateGroupModal(true)
+    }
+
+    const handleAddToGroup = () => {
+        setShowAddToGroupModal(true)
+    }
+
+    const onCreateGroup = (groupName: string) => {
+
+        const id = groupsActions.createGroup({
+            name: groupName,
+            segmentIds: Array.from(selectedSegments),
+
+        })
+
+        setSelectedSegments(new Set()) // Limpar seleção após criar grupo
+
+        actions.addIdGroup({
+            
+            groupId: id,
+            segmentIds: Array.from(selectedSegments)
+        
+        })
+    }
+
+    const onAddToGroup = (groupId: number) => {
+        console.log('Adicionando segmentos:', Array.from(selectedSegments), 'ao grupo:', groupId)
+        // TODO: Implementar lógica de adição a grupo
+        setSelectedSegments(new Set()) // Limpar seleção após adicionar
+    }
 
     const goToSegment = async (id: number) => {
 
@@ -168,24 +226,22 @@ const EditSegments = () => {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar Segmentos</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar Segmentos {selectedGroupId ? `- Grupo: ${groupsState.groups.find(g => g.id === selectedGroupId)?.name}` : ''}</h1>
                     <p className="text-gray-600">
-                        {useMemo(() => {
-                            if (!filters.length) return segments.length
-                            return segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type))).length
-                        }, [segments, filters])} segmento{useMemo(() => {
-                            if (!filters.length) return segments.length
-                            return segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type))).length
-                        }, [segments, filters]) !== 1 ? 's' : ''} para edição
+                        {filteredSegments.length} segmento{filteredSegments.length !== 1 ? 's' : ''} para edição
                     </p>
                 </div>
 
-                {/* Filtro de Erros */}
-                <div className="mb-6 flex justify-center">
+                {/* Filtros */}
+                <div className="mb-6 flex justify-center space-x-4">
                     <ErrorFilter 
-                        segments={segments} 
+                        filteredSegments={filteredSegments}
                         errorTypes={typeErrors}
                         onApply={setFilters} 
+                    />
+                    <GroupFilter 
+                        groups={groupsState.groups}
+                        onApply={setSelectedGroupId}
                     />
                 </div>
 
@@ -199,7 +255,14 @@ const EditSegments = () => {
                         </button>
                     )}
                     {currentView && currentView.segments.map((segment) => (
-                        <SegmentContainer key={segment.id} segment={segment} onNextPage={() => nextPage()} />
+                        <SegmentContainer 
+                            key={segment.id} 
+                            segment={segment} 
+                            onNextPage={() => nextPage()} 
+                            fileName={state.editValue?.file.name}
+                            isSelected={selectedSegments.has(segment.id)}
+                            onToggleSelection={() => toggleSegmentSelection(segment.id)}
+                        />
                     )
                     )}
                     <LoadingOverlay open={Boolean(loading)} label="Carregando" />
@@ -230,34 +293,45 @@ const EditSegments = () => {
                         </div>
                         <div>
                             <div className="text-xl font-bold text-green-600 mb-1">
-                                {useMemo(() => {
-                                    const base = !filters.length ? segments : segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type)))
-                                    return base.filter(s => s.status === 'confirmed' || s.status === 'MT').length
-                                }, [segments, filters])}
+                                {filteredSegments.filter(s => s.status === 'confirmed' || s.status === 'MT').length}
                             </div>
                             <div className="text-sm text-gray-600">Confirmados</div>
                         </div>
                         <div>
                             <div className="text-xl font-bold text-red-600 mb-1">
-                                {useMemo(() => {
-                                    const base = !filters.length ? segments : segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type)))
-                                    return base.filter(s => Array.isArray(s.errors) && s.errors.length > 0).length
-                                }, [segments, filters])}
+                                {filteredSegments.filter(s => Array.isArray(s.errors) && s.errors.length > 0).length}
                             </div>
                             <div className="text-sm text-gray-600">Com Erros</div>
                         </div>
                         <div>
                             <div className="text-xl font-bold text-yellow-600 mb-1">
-                                {useMemo(() => {
-                                    const base = !filters.length ? segments : segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type)))
-                                    return base.filter(s => s.status === 'new' || s.status === 'review').length
-                                }, [segments, filters])}
+                                {filteredSegments.filter(s => s.status === 'new' || s.status === 'review').length}
                             </div>
                             <div className="text-sm text-gray-600">Pendentes</div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Componentes de Grupo */}
+            <GroupActionsPanel
+                selectedCount={selectedSegments.size}
+                onCreateGroup={handleCreateGroup}
+                onAddToGroup={handleAddToGroup}
+            />
+
+            <CreateGroupModal
+                isOpen={showCreateGroupModal}
+                onClose={() => setShowCreateGroupModal(false)}
+                onCreateGroup={onCreateGroup}
+            />
+
+            <AddToGroupModal
+                isOpen={showAddToGroupModal}
+                onClose={() => setShowAddToGroupModal(false)}
+                onAddToGroup={onAddToGroup}
+                selectedCount={selectedSegments.size}
+            />
         </div>
     );
 };

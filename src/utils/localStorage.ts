@@ -4,6 +4,15 @@ export interface SegmentChange {
     changed: boolean;
 }
 
+export interface FakeError {
+    segmentId: number;
+    errorKey: string;
+    error: {
+        type: string;
+        message: string;
+    };
+}
+
 export const saveSegmentChange = (id: number, text: string, changed: boolean, fileName: string): void => {
     try {
         const existingData = localStorage.getItem('segments-' + fileName);
@@ -49,5 +58,46 @@ export const clearSegmentChanges = (): void => {
         console.log('Dados de segmentos removidos do localStorage');
     } catch (error) {
         console.error('Erro ao limpar localStorage:', error);
+    }
+};
+
+export const saveFakeError = (segmentId: number, errorKey: string, error: { type: string; message: string }, fileName: string): void => {
+    try {
+        const existingData = localStorage.getItem('fakeErrors-' + fileName);
+        let fakeErrors: FakeError[] = existingData ? JSON.parse(existingData) : [];
+        
+        // Verificar se já existe uma entrada para este erro específico
+        const existingIndex = fakeErrors.findIndex(fakeErr => 
+            fakeErr.segmentId === segmentId && fakeErr.errorKey === errorKey
+        );
+        
+        const fakeError: FakeError = {
+            segmentId,
+            errorKey,
+            error
+        };
+        
+        if (existingIndex >= 0) {
+            // Atualizar entrada existente
+            fakeErrors[existingIndex] = fakeError;
+        } else {
+            // Adicionar nova entrada
+            fakeErrors.push(fakeError);
+        }
+        
+        localStorage.setItem('fakeErrors-' + fileName, JSON.stringify(fakeErrors));
+        console.log(`Falso erro salvo no localStorage:`, fakeError);
+    } catch (error) {
+        console.error('Erro ao salvar falso erro no localStorage:', error);
+    }
+};
+
+export const getFakeErrors = (fileName: string): FakeError[] => {
+    try {
+        const data = localStorage.getItem('fakeErrors-' + fileName);
+        return data ? JSON.parse(data) : [];
+    } catch (error) {
+        console.error('Erro ao ler falsos erros do localStorage:', error);
+        return [];
     }
 };

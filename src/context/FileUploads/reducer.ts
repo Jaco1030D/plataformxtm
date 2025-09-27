@@ -78,7 +78,36 @@ export const reducer = (state: State = initialState, action: FileActions): State
             }
         }
 
+        case actionTypes.addIdGroup: {
+            const { segmentIds, groupId } = action.payload;
+            const editValue = state.editValue;
             
+            if (!editValue || !Array.isArray(editValue.content)) {
+                return state;
+            }
+
+            // Criar nova referência do array de segmentos
+            const newContent = editValue.content.map(segment => {
+                // Verificar se o segmento está na lista de IDs para adicionar o grupo
+                if (segmentIds.includes(segment.id)) {
+                    return {
+                        ...segment,
+                        groups: segment.groups 
+                            ? [...segment.groups, groupId] // Adicionar o grupo se já existir groups
+                            : [groupId] // Criar array com o grupo se não existir
+                    };
+                }
+                return segment;
+            });
+
+            return {
+                ...state,
+                editValue: {
+                    ...editValue,
+                    content: newContent
+                }
+            };
+        }
         
         default:
             return state;
