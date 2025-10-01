@@ -42,6 +42,42 @@ export const groupsReducer = (state: GroupsState, action: GroupActions): GroupsS
             };
         }
 
+        case actionTypes.addSegmentsForGroup: {
+            const { groupId, segmentIds } = action.payload;
+            
+            return {
+                ...state,
+                groups: state.groups.map(group => {
+                    if (group.id === groupId) {
+                        // Adiciona os novos segmentIds, evitando duplicatas
+                        const existingIds = new Set(group.segmentIds);
+                        const newIds = segmentIds.filter(id => !existingIds.has(id));
+                        
+                        return {
+                            ...group,
+                            segmentIds: [...group.segmentIds, ...newIds]
+                        };
+                    }
+                    return group;
+                })
+            };
+        }
+
+        case actionTypes.addGroup: {
+            const group = action.payload;
+            
+            // Verifica se o grupo já existe (por ID)
+            // const groupExists = state.groups.some(existingGroup => existingGroup.id === group.id);
+            
+           
+                // Se não existe, adiciona o novo grupo
+            return {
+                ...state,
+                groups: [...state.groups, ...group]
+            };
+            
+        }
+
         default:
             return state;
     }

@@ -1,5 +1,5 @@
 import type { Dispatch } from "react"
-import type { createGroup, deleteGroup, setActiveGroup } from "../actions-types.ts"
+import type { createGroup, deleteGroup, setActiveGroup, addSegmentsForGroup, addGroup } from "../actions-types.ts"
 
 // Tipo da ação
 type CreateGroupAction = {
@@ -24,8 +24,21 @@ type SetActiveGroupAction = {
     payload: string; // groupId
 };
 
+type AddSegmentsForGroupAction = {
+    type: typeof addSegmentsForGroup;
+    payload: {
+        groupId: string;
+        segmentIds: number[];
+    };
+};
+
+type AddGroupAction = {
+    type: typeof addGroup;
+    payload: Group[]; // Grupo completo
+};
+
 // Tipo de todas as ações
-export type GroupActions = CreateGroupAction | DeleteGroupAction | SetActiveGroupAction;
+export type GroupActions = CreateGroupAction | DeleteGroupAction | SetActiveGroupAction | AddSegmentsForGroupAction | AddGroupAction;
 
 export type BuildActionsParams = Dispatch<GroupActions>;
 
@@ -43,6 +56,7 @@ export interface Group {
 // Interface para metadata (futuro)
 export interface GroupsMetadata {
     // Propriedades futuras para metadata
+    [key: string]: unknown;
 }
 
 // Estado do contexto de grupos
@@ -63,4 +77,9 @@ export type BuildActionsReturnType = {
     }) => string; // Retorna o ID do grupo criado
     deleteGroup: (groupId: string) => void;
     setActiveGroup: (groupId: string) => void;
+    addSegmentsForGroup: (payload: {
+        groupId: string;
+        segmentIds: number[];
+    }) => void;
+    addGroup: (group: Group[]) => void; // Adiciona um grupo completo diretamente
 };

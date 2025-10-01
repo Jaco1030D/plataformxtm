@@ -4,7 +4,7 @@ import SegmentContainer from "../../organism/SegmentContainer";
 import GroupActionsPanel from "../../organism/GroupActionsPanel";
 import CreateGroupModal from "../../organism/CreateGroupModal";
 import AddToGroupModal from "../../organism/AddToGroupModal";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils";
 import { usePagination } from "../../../hooks/usePagination";
 import type { ErrorFilterKey } from "../../../hooks/usePagination";
@@ -62,6 +62,7 @@ const EditSegments = () => {
 
         setSelectedSegments(new Set()) // Limpar seleção após criar grupo
 
+        //Adiciona id do grupo nos segmentos
         actions.addIdGroup({
             
             groupId: id,
@@ -70,11 +71,26 @@ const EditSegments = () => {
         })
     }
 
-    const onAddToGroup = (groupId: number) => {
+    const onAddToGroup = (groupId: string) => {
         console.log('Adicionando segmentos:', Array.from(selectedSegments), 'ao grupo:', groupId)
         // TODO: Implementar lógica de adição a grupo
+
+        groupsActions.addSegmentsForGroup({
+            groupId,
+            segmentIds: Array.from(selectedSegments)
+        })
+
         setSelectedSegments(new Set()) // Limpar seleção após adicionar
+
+        actions.addIdGroup({
+            
+            groupId,
+            segmentIds: Array.from(selectedSegments)
+        
+        })
     }
+
+
 
     const goToSegment = async (id: number) => {
 
@@ -99,7 +115,7 @@ const EditSegments = () => {
 
             while (result < id) {
                 
-                result += 50
+                result += perPage
 
                 index++
             }
@@ -153,13 +169,7 @@ const EditSegments = () => {
         }
     }
 
-    const download = () => {
-        const segments = Array.isArray(state.editValue?.content) ? state.editValue?.content : []
-        const changedSegments = segments.filter(s => s.changed) || []
-
-        console.log(changedSegments);
-
-        const jsonString = JSON.stringify(changedSegments, null, 2);
+    const downloadFile = (jsonString: string) => {
 
         const blob = new Blob([jsonString], { type: 'application/json' });
 
@@ -178,9 +188,55 @@ const EditSegments = () => {
         document.body.removeChild(a);
 
         URL.revokeObjectURL(url);
+
+    }
+    const download = () => {
+        const segments = Array.isArray(state.editValue?.content) ? state.editValue?.content : []
+        const changedSegments = segments.filter(s => s.changed) || []
+
+        const jsonString = JSON.stringify(changedSegments, null, 2);
+
+        downloadFile(jsonString)
         
     }
+
+    const saveWork = () => {
+        
+        const object = {
+            groups: groupsState.groups,
+            segments: Array.isArray(state.editValue?.content) ? state.editValue?.content : [],
+        }
+
+        const jsonString = JSON.stringify(object, null, 2);
+
+        downloadFile(jsonString)
+
+    }
     
+    useEffect(() => {
+
+        const group = groupsState.groups.find(g => g.id === selectedGroupId)
+
+        console.log("Carregou:" + group?.segmentIds + " " + currentView?.segments);
+        
+        const renderizedComponents = currentView?.segments.length || 0
+
+        if (group && group?.segmentIds.length > renderizedComponents) {
+
+            console.log("O bug ocorreu");
+
+            actions.addIdGroup({
+            
+                groupId: group.id,
+                segmentIds: group.segmentIds
+            
+            })
+
+            
+        }
+
+    },[selectedGroupId, currentView])
+
     if (segments.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
@@ -221,6 +277,10 @@ const EditSegments = () => {
             <div className="cursor-pointer fixed top-20 bg-white right-6 z-10 flex text-gray-600 border-2 border-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 items-center space-x-2 shadow-sm">
                 <button onClick={download} title="Baixar segmentos editados" className="flex gap-1 cursor-pointer">Download <Download /> </button>
             </div>
+            <div className="cursor-pointer fixed top-32 bg-white right-6 z-10 flex text-gray-600 border-2 border-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 items-center space-x-2 shadow-sm">
+                <button onClick={saveWork} title="Baixar estado atual" className="flex gap-1 cursor-pointer">Salvar trabalho <Download /> </button>
+            </div>
+
             <input type="text" />
 
             <div className="max-w-4xl mx-auto">
@@ -284,10 +344,8 @@ const EditSegments = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div>
                             <div className="text-xl font-bold text-blue-600 mb-1">
-                                {useMemo(() => {
-                                    if (!filters.length) return segments.length
-                                    return segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type))).length
-                                }, [segments, filters])}
+                                {segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type))).length}
+                                
                             </div>
                             <div className="text-sm text-gray-600">Filtrados</div>
                         </div>

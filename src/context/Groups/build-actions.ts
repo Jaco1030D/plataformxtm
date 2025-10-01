@@ -26,7 +26,20 @@ export const buildActions = (dispatch: BuildActionsParams): BuildActionsReturnTy
             dispatch({
                 type: actionTypes.setActiveGroup,
                 payload: groupId
+            });
+        },
 
+        addSegmentsForGroup: (payload) => {
+            dispatch({
+                type: actionTypes.addSegmentsForGroup,
+                payload
+            });
+        },
+
+        addGroup: (group) => {
+            dispatch({
+                type: actionTypes.addGroup,
+                payload: group
             });
         }
     };

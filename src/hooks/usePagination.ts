@@ -8,6 +8,9 @@ interface CurrentViewProps {
     index: number
 }
 
+// Bug para resolver:
+// - Quando temos poucos elemsntos por chunk o gotosegments não funciona como o esperado
+
 export const usePagination = (chunkSize: number, segments: MigratedSegment[], filters: ErrorFilterKey[], selectedGroupId?: string | null) => {
     const [currentView, setCurrentView] = useState<CurrentViewProps|null>(null)
     const [isPending, startTransition] = useTransition()
@@ -30,7 +33,7 @@ export const usePagination = (chunkSize: number, segments: MigratedSegment[], fi
         }
 
         return filteredSegments;
-    }, [selectedGroupId, filters])
+    }, [segments, selectedGroupId, filters])
 
     const filteredIds = useMemo(() => {
         return filtered.map(segment => segment.id).sort((a, b) => a - b)
@@ -107,9 +110,12 @@ export const usePagination = (chunkSize: number, segments: MigratedSegment[], fi
 
     const prevLoadCount = useMemo(() => {
         if (!chunks || !currentView) return 0;
-        const nextChunk = chunks[currentView.index - 1];
-        if (!nextChunk) return 0;
-        return nextChunk.length;
+        const prevChunk = chunks[currentView.index - 1];
+        if (prevChunk &&prevChunk[0]?.id === 1) {
+            return 0;
+        }
+        if (!prevChunk) return 0;
+        return prevChunk.length;
     }, [chunks, currentView]);
 
     // Função de binary search para verificar se um ID existe nos segmentos filtrados
