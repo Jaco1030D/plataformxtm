@@ -4,14 +4,14 @@ import SegmentContainer from "../../organism/SegmentContainer";
 import GroupActionsPanel from "../../organism/GroupActionsPanel";
 import CreateGroupModal from "../../organism/CreateGroupModal";
 import AddToGroupModal from "../../organism/AddToGroupModal";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils";
 import { usePagination } from "../../../hooks/usePagination";
 import type { ErrorFilterKey } from "../../../hooks/usePagination";
 import LoadingOverlay from "../../organism/LoadingOverlay";
 import ErrorFilter from "../../organism/ErrorFilter";
 import GroupFilter from "../../organism/GroupFilter";
-import { useGroups } from "../../../context/Groups";
+import { useGroupsLogic } from "../../../hooks/useGroupsLogic";
 
 
 const EditSegments = () => {
@@ -20,75 +20,24 @@ const EditSegments = () => {
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
     const perPage = 50
     const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(perPage, segments, filters, selectedGroupId)
-    const [state, actions] = useFilesUploadsContext()
-    const {state: groupsState, actions: groupsActions} = useGroups()
+    const [state] = useFilesUploadsContext()
     const numforGoToRef = useRef<HTMLInputElement>(null)
     
-    const [selectedSegments, setSelectedSegments] = useState<Set<number>>(new Set())
-    
-    // Estado para modais
-    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
-    const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
-    
-    // Funções para gerenciar seleção
-    const toggleSegmentSelection = (segmentId: number) => {
-        setSelectedSegments(prev => {
-            const newSet = new Set(prev)
-            if (newSet.has(segmentId)) {
-                newSet.delete(segmentId)
-            } else {
-                newSet.add(segmentId)
-            }
-            return newSet
-        })
-    }
-
-    // Funções para ações dos grupos
-    const handleCreateGroup = () => {
-        setShowCreateGroupModal(true)
-    }
-
-    const handleAddToGroup = () => {
-        setShowAddToGroupModal(true)
-    }
-
-    const onCreateGroup = (groupName: string) => {
-
-        const id = groupsActions.createGroup({
-            name: groupName,
-            segmentIds: Array.from(selectedSegments),
-
-        })
-
-        setSelectedSegments(new Set()) // Limpar seleção após criar grupo
-
-        //Adiciona id do grupo nos segmentos
-        actions.addIdGroup({
-            
-            groupId: id,
-            segmentIds: Array.from(selectedSegments)
-        
-        })
-    }
-
-    const onAddToGroup = (groupId: string) => {
-        console.log('Adicionando segmentos:', Array.from(selectedSegments), 'ao grupo:', groupId)
-        // TODO: Implementar lógica de adição a grupo
-
-        groupsActions.addSegmentsForGroup({
-            groupId,
-            segmentIds: Array.from(selectedSegments)
-        })
-
-        setSelectedSegments(new Set()) // Limpar seleção após adicionar
-
-        actions.addIdGroup({
-            
-            groupId,
-            segmentIds: Array.from(selectedSegments)
-        
-        })
-    }
+    // Hook para lógica de grupos
+    const {
+        selectedSegments,
+        showCreateGroupModal,
+        showAddToGroupModal,
+        groupsState,
+        toggleSegmentSelection,
+        handleCreateGroup,
+        handleAddToGroup,
+        setShowCreateGroupModal,
+        setShowAddToGroupModal,
+        onCreateGroup,
+        onAddToGroup,
+        saveWork,
+    } = useGroupsLogic(selectedGroupId, currentView)
 
 
 
@@ -200,42 +149,6 @@ const EditSegments = () => {
         
     }
 
-    const saveWork = () => {
-        
-        const object = {
-            groups: groupsState.groups,
-            segments: Array.isArray(state.editValue?.content) ? state.editValue?.content : [],
-        }
-
-        const jsonString = JSON.stringify(object, null, 2);
-
-        downloadFile(jsonString)
-
-    }
-    
-    useEffect(() => {
-
-        const group = groupsState.groups.find(g => g.id === selectedGroupId)
-
-        console.log("Carregou:" + group?.segmentIds + " " + currentView?.segments);
-        
-        const renderizedComponents = currentView?.segments.length || 0
-
-        if (group && group?.segmentIds.length > renderizedComponents) {
-
-            console.log("O bug ocorreu");
-
-            actions.addIdGroup({
-            
-                groupId: group.id,
-                segmentIds: group.segmentIds
-            
-            })
-
-            
-        }
-
-    },[selectedGroupId, currentView])
 
     if (segments.length === 0) {
         return (
