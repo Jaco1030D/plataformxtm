@@ -69,6 +69,9 @@ export const useTags = () => {
 
     const createDataTags = (text: string, regex: RegExp, tags?: string[]): groupPlussType[] => {
     
+        // if (!text) {
+        //     return []
+        // }
         const matches = [...text.matchAll(regex)]
 
         const tagUsed  = tags
@@ -214,7 +217,7 @@ export const useTags = () => {
         const {textTrated: sourceHTML} = renderTextWithTags(segment.source)
         
         const {textTrated: targetHTML, tagsCreated} = renderTextWithTags(segment.translation)
-        
+
         const tagsUsed = createDataTags(segment.source, bracesRegex, tagsCreated)
         
         return { sourceHTML, targetHTML, tagsUsed }

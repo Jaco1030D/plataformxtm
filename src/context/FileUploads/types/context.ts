@@ -128,7 +128,8 @@ export interface FileWithSegment{
     content: JSONContent,
     file: File,
     size: number,
-    TypesErrors?: string[]
+    TypesErrors?: string[],
+    TypesStatus?: string[]
 }
 
 

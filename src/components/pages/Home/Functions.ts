@@ -7,17 +7,14 @@ import { useGroups } from '../../../context/Groups';
 
 export const useFunctions = () => {
     const [state, actions] = useFilesUploadsContext()
-    const {actions: actionsGroups, state: stateGroups} = useGroups()
+    const {actions: actionsGroups} = useGroups()
+    const [errors] = useState(false)
 
     const {extractContent, getTypeErrors} = useReaderJSON()
 
     const [processingFiles, setProcessingFiles] = useState(false)
     
     const [finalized, setFinalized] = useState(false);
-
-    console.log(state);
-
-    console.log(stateGroups);
     
     const navigate = useNavigate()
 
@@ -31,15 +28,18 @@ export const useFunctions = () => {
 
             const fileForAddSegments = state.files.filter(f => f.size === file.size)[0]
 
-            const TypesErrors = getTypeErrors(data)
+            const infos = getTypeErrors(data)
 
             if (Array.isArray(data)) {
+
+                
                 
                 actions.addSegments({
                     content: data,
                     file: fileForAddSegments,
                     size: file.size,
-                    TypesErrors
+                    TypesErrors: infos.TypesErrors,
+                    TypesStatus: infos.typeStatus
                 })
 
             } else {
@@ -50,7 +50,8 @@ export const useFunctions = () => {
                     content: segments,
                     file: fileForAddSegments,
                     size: file.size,
-                    TypesErrors
+                    TypesErrors: infos.TypesErrors,
+                    TypesStatus: infos.typeStatus
                 })
                 
                 actionsGroups.addGroup(groups)
@@ -79,11 +80,18 @@ export const useFunctions = () => {
 
     useEffect(() => {
 
-        if (finalized) {
+        if (errors) {
+
+           alert("Esse Tipo de json não é suportado") 
+           
+           return
+        }
+
+        if (finalized && !errors) {
             navigate(allFilesRoutes)
         }
     
-    }, [finalized, navigate])
+    }, [finalized, navigate, errors])
 
     return {
         handleUploadFile,

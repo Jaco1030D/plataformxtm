@@ -17,21 +17,29 @@ export const useReaderJSON = () => {
 
     const getTypeErrors = (parsedData: MigratedSegment[]) => {
         let TypesErrors: string[] = [];
+        let typeStatus: string[] = [];
 
         if (Array.isArray(parsedData)) {
             const typesSet = new Set<string>();
+            const typesSetStatus = new Set<string>();
             for (const seg of parsedData) {
+
                 const errors = (seg && Array.isArray(seg.errors)) ? seg.errors : [];
+                
+                typesSetStatus.add(seg.status)
+                
                 for (const err of errors) {
                     if (err && typeof err.type === 'string') {
                         typesSet.add(err.type);
                     }
                 }
+            
             }
             TypesErrors = Array.from(typesSet);
+            typeStatus = Array.from(typesSetStatus);
         }
 
-        return TypesErrors
+        return {TypesErrors, typeStatus}
     }
 
     const extractContent = (file: File): Promise<any> => {

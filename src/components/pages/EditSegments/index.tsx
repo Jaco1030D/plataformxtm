@@ -1,34 +1,30 @@
-import { ArrowLeft, Download, Edit3 } from "lucide-react";
+import { ArrowLeft, Download, Edit3, FileSpreadsheet } from "lucide-react";
 import { useFunctions } from "./Functions";
 import SegmentContainer from "../../organism/SegmentContainer";
-import GroupActionsPanel from "../../organism/GroupActionsPanel";
-import CreateGroupModal from "../../organism/CreateGroupModal";
-import AddToGroupModal from "../../organism/AddToGroupModal";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useFilesUploadsContext } from "../../../context/FileUploads/utils";
 import { usePagination } from "../../../hooks/usePagination";
 import type { ErrorFilterKey } from "../../../hooks/usePagination";
 import LoadingOverlay from "../../organism/LoadingOverlay";
-import ErrorFilter from "../../organism/ErrorFilter";
-import GroupFilter from "../../organism/GroupFilter";
+import FilterSidebar from "../../organism/FilterSidebar";
+import ErrorFilterSidebar from "../../organism/ErrorFilterSidebar";
+import StatusFilterSidebar from "../../organism/StatusFilterSidebar";
 import { useGroups } from "../../../context/Groups";
+import * as XLSX from 'xlsx';
 
 
 const EditSegments = () => {
-    const { back, segments, typeErrors } = useFunctions()
-    const [filters, setFilters] = useState<ErrorFilterKey[]>([])
-    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+    const { back, segments, typeErrors, typeStatus } = useFunctions()
+    const [filterErrors, setFilterErrors] = useState<ErrorFilterKey[]>([])
+    const [filterStatus, setFilterStatus] = useState<string[]>([])
+    const [selectedGroupId] = useState<string | null>(null)
     const perPage = 50
-    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(perPage, segments, filters, selectedGroupId)
-    const [state, actions] = useFilesUploadsContext()
-    const {state: groupsState, actions: groupsActions} = useGroups()
+    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(perPage, segments, filterErrors, selectedGroupId, filterStatus)
+    const [state] = useFilesUploadsContext()
+    const {state: groupsState} = useGroups()
     const numforGoToRef = useRef<HTMLInputElement>(null)
     
     const [selectedSegments, setSelectedSegments] = useState<Set<number>>(new Set())
-    
-    // Estado para modais
-    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
-    const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
     
     // Funções para gerenciar seleção
     const toggleSegmentSelection = (segmentId: number) => {
@@ -40,53 +36,6 @@ const EditSegments = () => {
                 newSet.add(segmentId)
             }
             return newSet
-        })
-    }
-
-    // Funções para ações dos grupos
-    const handleCreateGroup = () => {
-        setShowCreateGroupModal(true)
-    }
-
-    const handleAddToGroup = () => {
-        setShowAddToGroupModal(true)
-    }
-
-    const onCreateGroup = (groupName: string) => {
-
-        const id = groupsActions.createGroup({
-            name: groupName,
-            segmentIds: Array.from(selectedSegments),
-
-        })
-
-        setSelectedSegments(new Set()) // Limpar seleção após criar grupo
-
-        //Adiciona id do grupo nos segmentos
-        actions.addIdGroup({
-            
-            groupId: id,
-            segmentIds: Array.from(selectedSegments)
-        
-        })
-    }
-
-    const onAddToGroup = (groupId: string) => {
-        console.log('Adicionando segmentos:', Array.from(selectedSegments), 'ao grupo:', groupId)
-        // TODO: Implementar lógica de adição a grupo
-
-        groupsActions.addSegmentsForGroup({
-            groupId,
-            segmentIds: Array.from(selectedSegments)
-        })
-
-        setSelectedSegments(new Set()) // Limpar seleção após adicionar
-
-        actions.addIdGroup({
-            
-            groupId,
-            segmentIds: Array.from(selectedSegments)
-        
         })
     }
 
@@ -169,9 +118,8 @@ const EditSegments = () => {
         }
     }
 
-    const downloadFile = (jsonString: string) => {
+    const downloadFile = (blob: Blob) => {
 
-        const blob = new Blob([jsonString], { type: 'application/json' });
 
         const url = URL.createObjectURL(blob);
 
@@ -190,13 +138,15 @@ const EditSegments = () => {
         URL.revokeObjectURL(url);
 
     }
+
     const download = () => {
         const segments = Array.isArray(state.editValue?.content) ? state.editValue?.content : []
         const changedSegments = segments.filter(s => s.changed) || []
 
         const jsonString = JSON.stringify(changedSegments, null, 2);
 
-        downloadFile(jsonString)
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        downloadFile(blob)
         
     }
 
@@ -209,34 +159,48 @@ const EditSegments = () => {
 
         const jsonString = JSON.stringify(object, null, 2);
 
-        downloadFile(jsonString)
+        const blob = new Blob([jsonString], { type: 'application/json' });
+
+        downloadFile(blob)
 
     }
-    
-    useEffect(() => {
 
-        const group = groupsState.groups.find(g => g.id === selectedGroupId)
-
-        console.log("Carregou:" + group?.segmentIds + " " + currentView?.segments);
+    const exportToExcel = () => {
+        // Filtrar apenas os segmentos selecionados
+        const allSegments = Array.isArray(state.editValue?.content) ? state.editValue?.content : [];
+        const selectedSegmentsData = allSegments.filter(segment => selectedSegments.has(segment.id));
         
-        const renderizedComponents = currentView?.segments.length || 0
-
-        if (group && group?.segmentIds.length > renderizedComponents) {
-
-            console.log("O bug ocorreu");
-
-            actions.addIdGroup({
-            
-                groupId: group.id,
-                segmentIds: group.segmentIds
-            
-            })
-
-            
-        }
-
-    },[selectedGroupId, currentView])
-
+        // Preparar dados para o Excel
+        const excelData = selectedSegmentsData.map(segment => ({
+            'ID': segment.id,
+            'Source': segment.source,
+            'Translation': segment.translation,
+            'Status': segment.status || 'N/A',
+            'Errors': Array.isArray(segment.errors) ? segment.errors.map(e => e.type).join(', ') : 'Nenhum'
+        }));
+        
+        // Criar workbook e worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        
+        // Adicionar worksheet ao workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Segmentos Selecionados');
+        
+        // Gerar arquivo Excel
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        
+        // Download do arquivo
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `segmentos_selecionados_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
     if (segments.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
@@ -280,10 +244,19 @@ const EditSegments = () => {
             <div className="cursor-pointer fixed top-32 bg-white right-6 z-10 flex text-gray-600 border-2 border-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 items-center space-x-2 shadow-sm">
                 <button onClick={saveWork} title="Baixar estado atual" className="flex gap-1 cursor-pointer">Salvar trabalho <Download /> </button>
             </div>
+            
+            {/* Botão Exportar Excel - aparece apenas quando há segmentos selecionados */}
+            {selectedSegments.size > 0 && (
+                <div className="cursor-pointer fixed top-44 bg-white right-6 z-10 flex text-gray-600 border-2 border-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 items-center space-x-2 shadow-sm">
+                    <button onClick={exportToExcel} title={`Exportar ${selectedSegments.size} segmento(s) selecionado(s) para Excel`} className="flex gap-1 cursor-pointer">
+                        Exportar Excel ({selectedSegments.size}) <FileSpreadsheet />
+                    </button>
+                </div>
+            )}
 
             <input type="text" />
 
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto px-4">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar Segmentos {selectedGroupId ? `- Grupo: ${groupsState.groups.find(g => g.id === selectedGroupId)?.name}` : ''}</h1>
@@ -292,20 +265,10 @@ const EditSegments = () => {
                     </p>
                 </div>
 
-                {/* Filtros */}
-                <div className="mb-6 flex justify-center space-x-4">
-                    <ErrorFilter 
-                        filteredSegments={filteredSegments}
-                        errorTypes={typeErrors}
-                        onApply={setFilters} 
-                    />
-                    <GroupFilter 
-                        groups={groupsState.groups}
-                        onApply={setSelectedGroupId}
-                    />
-                </div>
-
-                <div className="space-y-4 relative">
+                {/* Layout principal com flex */}
+                <div className="flex gap-6">
+                    {/* Container dos segmentos */}
+                    <div className="flex-1 space-y-4 relative">
                     {prevLoadCount > 0 && (
                         <button 
                         className="flex w-[100%] bg-white text-blue-600 px-4 py-2 border-2 border-blue-600 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 items-center justify-center space-x-2" 
@@ -334,17 +297,31 @@ const EditSegments = () => {
                             Carregar mais {nextLoadCount}
                         </button>
                     )}
+                    </div>
+
+                    {/* Lateral de filtros */}
+                    <div className="w-80 flex-shrink-0">
+                        <FilterSidebar>
+                            <ErrorFilterSidebar 
+                                filteredSegments={filteredSegments}
+                                errorTypes={typeErrors}
+                                onApply={setFilterErrors} 
+                            />
+                            <StatusFilterSidebar 
+                                filteredSegments={filteredSegments}
+                                statusTypes={typeStatus}
+                                onApply={setFilterStatus} 
+                            />
+                        </FilterSidebar>
+                    </div>
                 </div>
-
-
-                
 
                 {/* Footer Stats */}
                 <div className="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div>
                             <div className="text-xl font-bold text-blue-600 mb-1">
-                                {segments.filter(s => Array.isArray(s.errors) && s.errors.some(e => filters.includes(e.type))).length}
+                                {filteredSegments.length}
                                 
                             </div>
                             <div className="text-sm text-gray-600">Filtrados</div>
@@ -371,25 +348,6 @@ const EditSegments = () => {
                 </div>
             </div>
 
-            {/* Componentes de Grupo */}
-            <GroupActionsPanel
-                selectedCount={selectedSegments.size}
-                onCreateGroup={handleCreateGroup}
-                onAddToGroup={handleAddToGroup}
-            />
-
-            <CreateGroupModal
-                isOpen={showCreateGroupModal}
-                onClose={() => setShowCreateGroupModal(false)}
-                onCreateGroup={onCreateGroup}
-            />
-
-            <AddToGroupModal
-                isOpen={showAddToGroupModal}
-                onClose={() => setShowAddToGroupModal(false)}
-                onAddToGroup={onAddToGroup}
-                selectedCount={selectedSegments.size}
-            />
         </div>
     );
 };

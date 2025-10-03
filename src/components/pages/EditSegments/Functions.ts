@@ -80,6 +80,7 @@ export const useFunctions = () => {
         back: () => navigate(allFilesRoutes),
         segments: (Array.isArray(state.editValue?.content) ? state.editValue?.content : []),
         typeErrors: state.editValue?.TypesErrors || [],
+        typeStatus: state.editValue?.TypesStatus || [],
         createChunks,
     }
 }

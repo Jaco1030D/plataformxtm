@@ -63,7 +63,7 @@ const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
             const currentContainer = inputRef.current?.closest('[id^="seg-"]') as HTMLElement | null
             if (currentContainer) {
                 // Encontrar o próximo segmento irmão
-                let nextContainer = currentContainer.nextElementSibling as HTMLElement | null
+                const nextContainer = currentContainer.nextElementSibling as HTMLElement | null
                 
                 // Se não há próximo irmão, tentar carregar próxima página
                 if (!nextContainer && onNextPage) {
