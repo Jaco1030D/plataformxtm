@@ -176,7 +176,7 @@ const EditSegments = () => {
             'Source': segment.source,
             'Translation': segment.translation,
             'Status': segment.status || 'N/A',
-            'Errors': Array.isArray(segment.errors) ? segment.errors.map(e => e.type).join(', ') : 'Nenhum'
+            'Errors': Array.isArray(segment.errors) ? segment.errors.map(e => e.message).join(', ') : 'Nenhum'
         }));
         
         // Criar workbook e worksheet

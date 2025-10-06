@@ -1,5 +1,5 @@
 import type { Dispatch } from "react"
-import type { addFileToEdit, addSegments, addIdGroup, clearFileToEdit, removeAllFiles, removeFile, updateSegments, uploadFile } from "../actions-types"
+import type { addFileToEdit, addSegments, addIdGroup, addFakeInfo, clearFileToEdit, removeAllFiles, removeFile, updateSegments, uploadFile } from "../actions-types"
   
 // Tipo da ação
 type UploadFileAction = {
@@ -44,6 +44,14 @@ type AddIdGroupAction = {
     }
 }
 
+type AddFakeInfoAction = {
+    type: typeof addFakeInfo,
+    payload: {
+        segmentId: number,
+        fakeInfo: ValidationMessage
+    }
+}
+
 // Tipo de todas as ações
 export type FileActions =
     | UploadFileAction
@@ -54,6 +62,7 @@ export type FileActions =
     | ClearFilesToEditAction
     | UpdateSegmentsAction
     | AddIdGroupAction
+    | AddFakeInfoAction
 
 export type BuildActionsParams = Dispatch<FileActions>;
 
@@ -111,6 +120,7 @@ export interface MigratedSegment {
     languages?: string[],
     errors: ValidationMessage[],
     validations: ValidationMessage[],
+    fakeInfos?: ValidationMessage[], // Informações ocultas pelo usuário
     changed?: boolean,
     groups?: string[] // Array de IDs dos grupos que o segmento pertence
 }
@@ -148,6 +158,7 @@ export type BuildActionsReturnType = {
     clearEditFile: () => void;
     updateSegments: (payload: UpdateProps) => void;
     addIdGroup: (payload: { segmentIds: number[], groupId: string }) => void;
+    addFakeInfo: (payload: { segmentId: number, fakeInfo: ValidationMessage }) => void;
   };
 
 export type FileContent = {

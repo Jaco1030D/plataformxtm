@@ -38,57 +38,59 @@ const ValidationsDisplay: React.FC<ValidationsDisplayProps> = React.memo(({ segm
     if (totalValidations === 0) return null;
 
     return (
-        <div className="mt-3">
-            {/* Botão de Abertura */}
+        <div className="mt-1">
+            {/* Botão de Abertura compacto */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                className="w-full flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors duration-200"
             >
                 <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">
-                        {totalValidations} validação{totalValidations !== 1 ? 'ões' : ''} encontrada{totalValidations !== 1 ? 's' : ''}
+                    <CheckCircle className="w-3 h-3 text-green-600" />
+                    <span className="text-xs font-medium text-green-800">
+                        {totalValidations} validação{totalValidations !== 1 ? 'ões' : ''}
                     </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <span className="text-xs text-green-600 bg-green-200 px-2 py-1 rounded-full">
-                        {validationsByType.size} tipo{validationsByType.size !== 1 ? 's' : ''}
+                <div className="flex items-center space-x-1">
+                    <span className="text-xs text-green-600 bg-green-200 px-1 py-0.5 rounded">
+                        {validationsByType.size}
                     </span>
                     {isOpen ? (
-                        <ChevronUp className="w-4 h-4 text-green-600" />
+                        <ChevronUp className="w-3 h-3 text-green-600" />
                     ) : (
-                        <ChevronDown className="w-4 h-4 text-green-600" />
+                        <ChevronDown className="w-3 h-3 text-green-600" />
                     )}
                 </div>
             </button>
 
-            {/* Dropdown de Validações */}
+            {/* Dropdown de Validações sobreposto */}
             {isOpen && (
-                <div className="mt-2 space-y-2">
-                    {Array.from(validationsByType.entries()).map(([key, list]) => (
-                        <div key={key} className={`p-3 rounded-lg border bg-green-50 border-green-200`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                    <div className="text-green-600">
-                                        {iconFor(key)}
+                <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                    <div className="p-2 space-y-1">
+                        {Array.from(validationsByType.entries()).map(([key, list]) => (
+                            <div key={key} className={`p-2 rounded border bg-green-50 border-green-200`}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center space-x-1">
+                                        <div className="text-green-600">
+                                            {iconFor(key)}
+                                        </div>
+                                        <span className={`text-xs font-medium text-green-700`}>
+                                            {key}
+                                        </span>
                                     </div>
-                                    <span className={`text-sm font-medium text-green-700`}>
-                                        {key}
+                                    <span className={`text-xs font-bold px-1 py-0.5 rounded text-green-700 bg-white`}>
+                                        {list.length}
                                     </span>
                                 </div>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full text-green-700 bg-white`}>
-                                    {list.length}
-                                </span>
+                                <div className="space-y-1">
+                                    {list.map((val, idx) => (
+                                        <div key={idx} className="text-xs text-gray-700 bg-white p-1 rounded border-l-2 border-green-300 truncate">
+                                            {val.message}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                {list.map((val, idx) => (
-                                    <div key={idx} className="text-xs text-gray-700 bg-white p-2 rounded border-l-2 border-green-300">
-                                        {val.message}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

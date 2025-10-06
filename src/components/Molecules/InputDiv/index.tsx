@@ -202,18 +202,25 @@ const InputDiv = ({targetValue, segment, onNextPage}: InputDivProps) => {
 
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tradução (Target) - numero de tags {tagsData && tagsData?.length > 0 && tagsData.length}
-            </label>
+            {/* Label compacto para o novo layout */}
+            <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-gray-700">
+                    Target
+                </label>
+                {tagsData && tagsData?.length > 0 && (
+                    <span className="text-xs text-gray-500">
+                        {tagsData.length} tag{tagsData.length !== 1 ? 's' : ''}
+                    </span>
+                )}
+            </div>
             <div className='flex flex-col'>
-
                 <div 
                     ref={inputRef} 
                     contentEditable
                     onKeyDown={handleKeyDownWithSave}
                     dangerouslySetInnerHTML={{__html: targetText || ""}}
                     suppressContentEditableWarning 
-                    className='w-full min-h-12 items-center bg-white border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none'
+                    className='w-full min-h-[60px] max-h-[100px] overflow-y-auto items-center bg-white border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none'
                 />
             </div>
         </div>

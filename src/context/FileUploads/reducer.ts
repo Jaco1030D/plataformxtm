@@ -108,6 +108,44 @@ export const reducer = (state: State = initialState, action: FileActions): State
                 }
             };
         }
+
+        case actionTypes.addFakeInfo: {
+            const { segmentId, fakeInfo } = action.payload;
+            const editValue = state.editValue;
+            
+            if (!editValue || !Array.isArray(editValue.content)) {
+                return state;
+            }
+
+            if (Array.isArray(editValue.content)) {
+                
+                const index = Number(segmentId) - 1;
+
+                const segment = editValue.content[index];
+
+
+                const errorIndex = segment.errors.findIndex(error => error.message === fakeInfo.message)
+                
+                if (errorIndex !== -1) {
+                    segment.errors.splice(errorIndex, 1)
+                }
+
+                //riar um array com os tipos do fakeinfos, vai ser usadono filtro
+
+                if (segment) {
+                    
+                    segment.fakeInfos = segment.fakeInfos 
+                        ? [...segment.fakeInfos, fakeInfo] 
+                        : [fakeInfo]
+                }
+            }
+            // Criar nova referência do array de segmentos
+
+            return {
+                ...state,
+                editValue
+            }
+        }
         
         default:
             return state;

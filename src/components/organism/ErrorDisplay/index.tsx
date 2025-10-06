@@ -82,21 +82,21 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = React.memo(({ segment, fileNam
     if (totalErrors === 0) return null;
 
     return (
-        <div className="mt-3">
-            {/* Botão de Abertura */}
+        <div className="mt-1">
+            {/* Botão de Abertura compacto */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                className="w-full flex items-center justify-between p-2 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors duration-200"
             >
                 <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">
-                        {totalErrors} erro{totalErrors !== 1 ? 's' : ''} encontrado{totalErrors !== 1 ? 's' : ''}
+                    <AlertTriangle className="w-3 h-3 text-red-600" />
+                    <span className="text-xs font-medium text-red-800">
+                        {totalErrors} erro{totalErrors !== 1 ? 's' : ''}
                     </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <span className="text-xs text-red-600 bg-red-200 px-2 py-1 rounded-full">
-                        {errorsByType.size} tipo{errorsByType.size !== 1 ? 's' : ''}
+                <div className="flex items-center space-x-1">
+                    <span className="text-xs text-red-600 bg-red-200 px-1 py-0.5 rounded">
+                        {errorsByType.size}
                     </span>
                     {hiddenErrors.size > 0 && (
                         <button
@@ -104,51 +104,53 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = React.memo(({ segment, fileNam
                             className="text-xs text-blue-600 hover:text-blue-800 underline"
                             title="Restaurar erros ocultos"
                         >
-                            Restaurar ({hiddenErrors.size})
+                            ({hiddenErrors.size})
                         </button>
                     )}
                     {isOpen ? (
-                        <ChevronUp className="w-4 h-4 text-red-600" />
+                        <ChevronUp className="w-3 h-3 text-red-600" />
                     ) : (
-                        <ChevronDown className="w-4 h-4 text-red-600" />
+                        <ChevronDown className="w-3 h-3 text-red-600" />
                     )}
                 </div>
             </button>
 
-            {/* Dropdown de Erros */}
+            {/* Dropdown de Erros sobreposto */}
             {isOpen && (
-                <div className="mt-2 space-y-2">
-                    {Array.from(errorsByType.entries()).map(([key, list]) => (
-                        <div key={key} className={`p-3 rounded-lg border bg-red-50 border-red-200`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                    <div className="text-red-600">
-                                        {iconFor(key)}
+                <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                    <div className="p-2 space-y-1">
+                        {Array.from(errorsByType.entries()).map(([key, list]) => (
+                            <div key={key} className={`p-2 rounded border bg-red-50 border-red-200`}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center space-x-1">
+                                        <div className="text-red-600">
+                                            {iconFor(key)}
+                                        </div>
+                                        <span className={`text-xs font-medium text-red-700`}>
+                                            {key}
+                                        </span>
                                     </div>
-                                    <span className={`text-sm font-medium text-red-700`}>
-                                        {key}
+                                    <span className={`text-xs font-bold px-1 py-0.5 rounded text-red-700 bg-white`}>
+                                        {list.length}
                                     </span>
                                 </div>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full text-red-700 bg-white`}>
-                                    {list.length}
-                                </span>
+                                <div className="space-y-1">
+                                    {list.map((err, idx) => (
+                                        <div key={idx} className="flex items-center justify-between text-xs text-gray-700 bg-white p-1 rounded border-l-2 border-gray-300 group hover:bg-gray-50 transition-colors">
+                                            <span className="flex-1 truncate">{err.message}</span>
+                                            <button
+                                                onClick={() => hideError(err)}
+                                                className="ml-1 p-0.5 rounded-full hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                title="Marcar como falso positivo"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                {list.map((err, idx) => (
-                                    <div key={idx} className="flex items-center justify-between text-xs text-gray-700 bg-white p-2 rounded border-l-2 border-gray-300 group hover:bg-gray-50 transition-colors">
-                                        <span className="flex-1">{err.message}</span>
-                                        <button
-                                            onClick={() => hideError(err)}
-                                            className="ml-2 p-1 rounded-full hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors opacity-0 opacity-100"
-                                            title="Marcar como falso positivo"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
