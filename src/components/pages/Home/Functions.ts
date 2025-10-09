@@ -31,8 +31,6 @@ export const useFunctions = () => {
             const infos = getTypeErrors(data)
 
             if (Array.isArray(data)) {
-
-                
                 
                 actions.addSegments({
                     content: data,
@@ -43,6 +41,7 @@ export const useFunctions = () => {
                 })
 
             } else {
+                
                 const groups = data.groups
                 const segments = data.segments
 

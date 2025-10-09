@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Edit3, FileSpreadsheet } from "lucide-react";
+import { AlertCircle, ArrowLeft, Download, Edit3, FileSpreadsheet } from "lucide-react";
 import { useFunctions } from "./Functions";
 import SegmentContainer from "../../organism/SegmentContainer";
 import { useRef, useState } from "react";
@@ -17,9 +17,11 @@ const EditSegments = () => {
     const { back, segments, typeErrors, typeStatus } = useFunctions()
     const [filterErrors, setFilterErrors] = useState<ErrorFilterKey[]>([])
     const [filterStatus, setFilterStatus] = useState<string[]>([])
+    const [filterFakeInfos, setFilterFakeInfos] = useState<boolean>(false)
     const [selectedGroupId] = useState<string | null>(null)
     const perPage = 50
-    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(perPage, segments, filterErrors, selectedGroupId, filterStatus)
+    const { nextPage, prevPage, currentView, loading, nextLoadCount, prevLoadCount, binarySearch, filteredSegments } = usePagination(
+        perPage, segments, filterErrors, selectedGroupId, filterStatus, filterFakeInfos)
     const [state] = useFilesUploadsContext()
     const {state: groupsState} = useGroups()
     const numforGoToRef = useRef<HTMLInputElement>(null)
@@ -302,6 +304,7 @@ const EditSegments = () => {
                     {/* Lateral de filtros */}
                     <div className="w-80 flex-shrink-0">
                         <FilterSidebar>
+                            <button onClick={() => setFilterFakeInfos(!filterFakeInfos)} className="flex gap-1 cursor-pointer hover:bg-gray-100 p-4 rounded-lg">{!filterFakeInfos ? "Mostrar apenas segmentos com falsos erros" : "Mostrar todos os segmentos"} <AlertCircle /></button>
                             <ErrorFilterSidebar 
                                 filteredSegments={filteredSegments}
                                 errorTypes={typeErrors}

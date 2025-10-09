@@ -11,7 +11,7 @@ interface CurrentViewProps {
 // Bug para resolver:
 // - Quando temos poucos elemsntos por chunk o gotosegments não funciona como o esperado
 
-export const usePagination = (chunkSize: number, segments: MigratedSegment[], filterErrors: ErrorFilterKey[], selectedGroupId?: string | null, filterStatus?: string[]) => {
+export const usePagination = (chunkSize: number, segments: MigratedSegment[], filterErrors: ErrorFilterKey[], selectedGroupId?: string | null, filterStatus?: string[], filterFakeInfos?: boolean) => {
     const [currentView, setCurrentView] = useState<CurrentViewProps|null>(null)
     const [isPending, startTransition] = useTransition()
 
@@ -39,8 +39,15 @@ export const usePagination = (chunkSize: number, segments: MigratedSegment[], fi
             );
         }
 
+        // Filtro por fake infos
+        if (filterFakeInfos) {
+            filteredSegments = filteredSegments.filter(segment =>
+                segment.fakeInfos
+            );
+        }
+
         return filteredSegments;
-    }, [segments, selectedGroupId, filterErrors, filterStatus])
+    }, [segments, selectedGroupId, filterErrors, filterStatus, filterFakeInfos])
 
     const filteredIds = useMemo(() => {
         return filtered.map(segment => segment.id).sort((a, b) => a - b)

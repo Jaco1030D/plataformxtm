@@ -1,6 +1,11 @@
 import { useState } from "react";
 import type { MigratedSegment } from "../context/FileUploads/types/context";
 
+interface saveWorkJSON {
+    groups: string[],
+    segments: MigratedSegment[]
+}
+
 export const useReaderJSON = () => {
     // const [state, actions] = useFilesUploadsContext()
     const [jsonData, setJsonData] = useState(null);
@@ -15,29 +20,41 @@ export const useReaderJSON = () => {
     //   abortControllerRef.current = new AbortController();
     //   const signal = abortControllerRef.current.signal;
 
-    const getTypeErrors = (parsedData: MigratedSegment[]) => {
+    const getTypeErrors = (parsedData: MigratedSegment[] | saveWorkJSON) => {
         let TypesErrors: string[] = [];
         let typeStatus: string[] = [];
+        let segments = []
 
-        if (Array.isArray(parsedData)) {
-            const typesSet = new Set<string>();
-            const typesSetStatus = new Set<string>();
-            for (const seg of parsedData) {
+        if (!Array.isArray(parsedData)) {
 
-                const errors = (seg && Array.isArray(seg.errors)) ? seg.errors : [];
-                
-                typesSetStatus.add(seg.status)
-                
-                for (const err of errors) {
-                    if (err && typeof err.type === 'string') {
-                        typesSet.add(err.type);
-                    }
-                }
-            
-            }
-            TypesErrors = Array.from(typesSet);
-            typeStatus = Array.from(typesSetStatus);
+            segments = parsedData.segments
+        
+        } else {
+        
+            segments = parsedData
+        
         }
+
+        const typesSet = new Set<string>();
+
+        const typesSetStatus = new Set<string>();
+        
+        for (const seg of segments) {
+
+            const errors = (seg && Array.isArray(seg.errors)) ? seg.errors : [];
+            
+            typesSetStatus.add(seg.status)
+            
+            for (const err of errors) {
+                if (err && typeof err.type === 'string') {
+                    typesSet.add(err.type);
+                }
+            }
+        
+        }
+        
+        TypesErrors = Array.from(typesSet);
+        typeStatus = Array.from(typesSetStatus);
 
         return {TypesErrors, typeStatus}
     }
